@@ -10902,6 +10902,46 @@
                             <input
                                 type="checkbox"
                                 class="form-check-input"
+                                id="input-resourceful-enabled"
+                            />
+                        </div>
+                        <label
+                            class="col-sm-5 col-form-label"
+                            id="label-resourceful"
+                            for="input-resourceful"
+                            >Resourceful
+                        </label>
+                        <label
+                            class="col-sm-2 col-form-label"
+                            style="display: none; text-align: right"
+                            id="label-resourceful-noopt"
+                            for="input-resourceful-noopt"
+                            >lock level:
+                        </label>
+                        <div class="col-sm-1">
+                            <input
+                                type="checkbox"
+                                style="display: none"
+                                class="form-check-input"
+                                id="input-resourceful-noopt"
+                            />
+                        </div>
+                        <div class="col-sm-5">
+                            <input
+                                class="form-control"
+                                value="0"
+                                type="number"
+                                min="0"
+                                style="margin-bottom: 0.1rem"
+                                id="input-resourceful"
+                            />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-1">
+                            <input
+                                type="checkbox"
+                                class="form-check-input"
                                 id="input-power-enabled"
                             />
                         </div>
@@ -12163,6 +12203,16 @@
                         priceFact: 3,
                         effect: 1,
                         efficiency: 0,
+                    },
+                    Resourceful: {
+                        optimize: true,
+                        locked: true,
+                        levLocked: false,
+                        level: 0,
+                        priceBase: 50000,
+                        heliumSpent: 0,
+                        radLevel: 0,
+                        radSpent: 0,
                     },
                 };
             }
@@ -14609,6 +14659,19 @@ function shinyCollectOld(level,zone) {
                     }
                 }
                 var motivCost = getPerkCost("Motivation", 1);
+                // Resourceful - straight copy of motivation
+                var resourceful =
+                    1 + perks.Resourceful.level * perks.Resourceful.effect;
+                var resourcefulGain =
+                    (resourceful + perks.Resourceful.effect) / resourceful;
+                if (props.specialChallenge == "trappa") {
+                    if (props.targetZone < 162) {
+                        resourcefulGain = Math.pow(resourcefulGain, 0.0001);
+                    } else if (props.targetZone < 172) {
+                        resourcefulGain = Math.pow(resourcefulGain, 0.5);
+                    }
+                }
+                var resourcefulCost = getPerkCost("Resourceful", 1);
                 // Power
                 var pow = 1 + perks.Power.level * perks.Power.effect;
                 var powGain = (pow + perks.Power.effect) / pow;
@@ -14805,7 +14868,11 @@ function shinyCollectOld(level,zone) {
                 // Note motivGain is already derated for Trappa above
                 perks.Motivation.efficiency =
                     getLogWeightedValue(1, 1, 1, motivGain, 1, 1) / motivCost;
-
+                // Resourceful:
+                // Straight copy of motivation
+                perks.Resourceful.efficiency =
+                    getLogWeightedValue(1, 1, 1, resourcefulGain, 1, 1) /
+                    resourcefulCost;
                 // Packrat:
                 //   all-resource gain from decreased storage costs (no radon)
                 // Note: 0.125 because you only pay taxes on the half of your last storage that you filled before buying it
